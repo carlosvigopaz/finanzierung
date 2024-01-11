@@ -1,22 +1,29 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Container } from 'semantic-ui-react';
 import { Payment } from '../models/payment';
 import NavBar from './NavBar';
 import PaymentDashboard from '../../features/payments/dashboard/PaymentDashboard';
 import { v4 as uuid } from 'uuid';
+import agent from '../api/agent';
+import LoadingComponent from './LoadingComponent';
 
 function App() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [selectedPayment, setSelectedPayment] = useState<Payment | undefined>(undefined);
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    axios
-      .get<Payment[]>('http://localhost:5000/api/payments')
-      .then((response) => {
-        setPayments(response.data);
+    agent.Payments.list().then(response => {
+      const payments: Payment[] = [];
+      response.forEach(payment => {
+        payment.date = payment.date.split('T')[0];
+        payments.push(payment);
       });
+      setPayments(payments);
+      setLoading(false);
+    });
   }, []);
 
   function handleSelectPayment(id: string) {
@@ -37,16 +44,34 @@ function App() {
   }
 
   function handleCreateOrEditPayment(payment: Payment) {
-    payment.id
-      ? setPayments([...payments.filter(p => p.id !== payment.id), payment])
-      : setPayments([...payments, {...payment, id: uuid()}]);
-    setEditMode(false);
-    setSelectedPayment(payment);
+    setSubmitting(true);
+    if (payment.id) {
+      agent.Payments.update(payment).then(() => {
+        setPayments([...payments.filter(p => p.id !== payment.id), payment]);
+        setSelectedPayment(payment);
+        setEditMode(false);
+        setSubmitting(false);
+      });
+    } else {
+      payment.id = uuid();
+      agent.Payments.create(payment).then(() => {
+        setPayments([...payments, payment]);
+        setSelectedPayment(payment);
+        setEditMode(false);
+        setSubmitting(false);
+      });
+    }
   }
 
   function handleDeletePayment(id: string) {
-    setPayments([...payments.filter(p => p.id !== id)]);
+    setSubmitting(true);
+    agent.Payments.delete(id).then(() => {
+      setPayments([...payments.filter(p => p.id !== id)]);
+      setSubmitting(false);
+    });
   }
+
+  if (loading) return <LoadingComponent content={'Loading app...'} />
 
   return (
     <>
@@ -61,7 +86,8 @@ function App() {
           openForm={handleOpenForm}
           closeForm={handleCloseForm}
           createOrEdit={handleCreateOrEditPayment}
-          deletePayment={handleDeletePayment} />
+          deletePayment={handleDeletePayment}
+          submitting={submitting} />
       </Container>
     </>
   );

@@ -1,13 +1,13 @@
 import { Button, Card, Image } from 'semantic-ui-react';
-import { Payment } from '../../../app/models/payment';
+import { useStore } from '../../../app/stores/store';
+import LoadingComponent from '../../../app/layout/LoadingComponent';
 
-interface Props {
-    payment: Payment;
-    cancelSelectPayment: () => void;
-    openForm: (id: string) => void;
-}
+export default function PaymentDetails() {
+  const {paymentStore} = useStore();
+  const {selectedPayment: payment, openForm, cancelSelectedPayment} = paymentStore;
 
-export default function PaymentDetails({payment, cancelSelectPayment, openForm}: Props) {
+  if (!payment) return <LoadingComponent />;
+
   return (
     <Card>
       <Image src='/assets/categoryImages/culture.jpg' wrapped ui={false} />
@@ -24,7 +24,7 @@ export default function PaymentDetails({payment, cancelSelectPayment, openForm}:
       <Card.Content extra>
         <Button.Group widths='2'>
             <Button onClick={() => openForm(payment.id)} basic color='blue' content='Edit' />
-            <Button onClick={cancelSelectPayment} basic color='grey' content='Cancel' />
+            <Button onClick={cancelSelectedPayment} basic color='grey' content='Cancel' />
         </Button.Group>
       </Card.Content>
     </Card>

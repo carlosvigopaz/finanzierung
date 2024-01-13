@@ -20,6 +20,16 @@ export default class PaymentStore {
             .sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
     }
 
+    get groupedPayments() {
+        return Object.entries(
+            this.paymentsByDate.reduce((payments, payment) => {
+                const date = payment.date;
+                payments[date] = payments[date] ? [...payments[date], payment] : [payment];
+                return payments;
+            }, {} as {[key: string]: Payment[]})
+        );
+    }
+
     loadPayments = async () => {
         this.setLoadingInitial(true);
         try {

@@ -1,45 +1,25 @@
-import { Button, Item, Label, Segment } from 'semantic-ui-react';
-import { SyntheticEvent, useState } from 'react';
+import { Header } from 'semantic-ui-react';
 import { useStore } from '../../../app/stores/store';
 import { observer } from 'mobx-react-lite';
-import { Link } from 'react-router-dom';
+import PaymentListItem from './PaymentListItem';
+import { Fragment } from 'react';
 
 export default observer(function PaymentList() {
   const {paymentStore} = useStore();
-  const {paymentsByDate, deletePayment, loading} = paymentStore;
-
-  const [target, setTarget] = useState('');
-
-  function handleDeletePayment(event: SyntheticEvent<HTMLButtonElement>, id: string) {
-    setTarget(event.currentTarget.name);
-    deletePayment(id);
-  }
+  const {groupedPayments} = paymentStore;
 
   return (
-    <Segment>
-      <Item.Group divided>
-        {paymentsByDate.map((payment) => (
-          <Item key={payment.id}>
-            <Item.Content>
-              <Item.Header as='a'>{payment.reference}</Item.Header>
-              <Item.Meta>{payment.date}</Item.Meta>
-              <Item.Description>
-                <div>€ {payment.amount}</div>
-                <div>From {payment.from} to {payment.to}</div>
-              </Item.Description>
-              <Item.Extra>
-                <Button as={Link} to={`/payments/${payment.id}`} floated='right' content='View' color='blue' />
-                <Button
-                  name={payment.id}
-                  loading={loading && target===payment.id}
-                  onClick={(event) => handleDeletePayment(event, payment.id)}
-                  floated='right' content='Delete' color='red' />
-                <Label basic content={`€ ${payment.amount}`} />
-              </Item.Extra>
-            </Item.Content>
-          </Item>
-        ))}
-      </Item.Group>
-    </Segment>
+    <>
+      {groupedPayments.map(([group, payments]) => (
+        <Fragment key={group}>
+          <Header sub color='teal'>
+            {group}
+          </Header>
+          {payments.map((payment) => (
+            <PaymentListItem key={payment.id} payment={payment} />
+          ))}
+        </Fragment>
+      ))}
+    </>
   );
 })

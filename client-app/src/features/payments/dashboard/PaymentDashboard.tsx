@@ -4,6 +4,7 @@ import { useStore } from '../../../app/stores/store';
 import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import LoadingComponent from '../../../app/layout/LoadingComponent';
+import PaymentFilters from './PaymentFilters';
 
 export default observer(function PaymentDashboard() {
   const {paymentStore} = useStore();
@@ -21,7 +22,7 @@ export default observer(function PaymentDashboard() {
         <PaymentList />
       </Grid.Column>
       <Grid.Column width='6'>
-        <h2>Payment filters</h2>
+        <PaymentFilters />
       </Grid.Column>
     </Grid>
   );

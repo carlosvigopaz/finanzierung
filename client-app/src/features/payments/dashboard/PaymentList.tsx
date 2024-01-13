@@ -2,6 +2,7 @@ import { Button, Item, Label, Segment } from 'semantic-ui-react';
 import { SyntheticEvent, useState } from 'react';
 import { useStore } from '../../../app/stores/store';
 import { observer } from 'mobx-react-lite';
+import { Link } from 'react-router-dom';
 
 export default observer(function PaymentList() {
   const {paymentStore} = useStore();
@@ -27,7 +28,7 @@ export default observer(function PaymentList() {
                 <div>From {payment.from} to {payment.to}</div>
               </Item.Description>
               <Item.Extra>
-                <Button onClick={() => paymentStore.selectPayment(payment.id)} floated='right' content='View' color='blue' />
+                <Button as={Link} to={`/payments/${payment.id}`} floated='right' content='View' color='blue' />
                 <Button
                   name={payment.id}
                   loading={loading && target===payment.id}

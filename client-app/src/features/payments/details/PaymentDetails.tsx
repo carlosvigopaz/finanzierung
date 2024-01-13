@@ -1,12 +1,22 @@
 import { Button, Card, Image } from 'semantic-ui-react';
 import { useStore } from '../../../app/stores/store';
 import LoadingComponent from '../../../app/layout/LoadingComponent';
+import { observer } from 'mobx-react-lite';
+import { Link, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
 
-export default function PaymentDetails() {
+export default observer(function PaymentDetails() {
   const {paymentStore} = useStore();
-  const {selectedPayment: payment, openForm, cancelSelectedPayment} = paymentStore;
+  const {selectedPayment: payment, loadPayment, loadingInitial} = paymentStore;
+  const {id} = useParams();
 
-  if (!payment) return <LoadingComponent />;
+  useEffect(() => {
+    if (id) {
+      loadPayment(id);
+    }
+  }, [id, loadPayment]);
+
+  if (loadingInitial || !payment) return <LoadingComponent />;
 
   return (
     <Card>
@@ -23,10 +33,10 @@ export default function PaymentDetails() {
       </Card.Content>
       <Card.Content extra>
         <Button.Group widths='2'>
-            <Button onClick={() => openForm(payment.id)} basic color='blue' content='Edit' />
-            <Button onClick={cancelSelectedPayment} basic color='grey' content='Cancel' />
+            <Button as={Link} to={`/manage/${payment.id}`} basic color='blue' content='Edit' />
+            <Button as={Link} to='/payments' basic color='grey' content='Cancel' />
         </Button.Group>
       </Card.Content>
     </Card>
   );
-}
+})

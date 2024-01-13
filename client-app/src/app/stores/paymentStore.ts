@@ -8,7 +8,7 @@ export default class PaymentStore {
     selectedPayment: Payment | undefined = undefined;
     editMode = false;
     loading = false;
-    loadingInitial = true;
+    loadingInitial = false;
 
     constructor() {
         makeAutoObservable(this);
@@ -21,11 +21,11 @@ export default class PaymentStore {
     }
 
     loadPayments = async () => {
+        this.setLoadingInitial(true);
         try {
             const payments = await agent.Payments.list();
             payments.forEach(payment => {
-                payment.date = payment.date.split('T')[0];
-                this.paymentRegistry.set(payment.id, payment);
+                this.setPayment(payment);
             });
             this.setLoadingInitial(false);
         } catch (error) {
@@ -34,25 +34,37 @@ export default class PaymentStore {
         }
     }
 
+    loadPayment = async (id: string) => {
+        let payment = this.getPayment(id);
+        if (payment) {
+            this.selectedPayment = payment;
+            return payment;
+        } else {
+            this.setLoadingInitial(true);
+            try {
+                payment = await agent.Payments.details(id);
+                this.setPayment(payment);
+                runInAction(() => this.selectedPayment = payment);
+                this.setLoadingInitial(false);
+                return payment;
+            } catch (error) {
+                console.log(error);
+                this.setLoadingInitial(false);
+            }
+        }
+    }
+
+    private setPayment = (payment: Payment) => {
+        payment.date = payment.date.split('T')[0];
+        this.paymentRegistry.set(payment.id, payment);
+    }
+
+    private getPayment = (id: string) => {
+        return this.paymentRegistry.get(id);
+    }
+
     setLoadingInitial = (state: boolean) => {
         this.loadingInitial = state;
-    }
-
-    selectPayment = (id: string) => {
-        this.selectedPayment = this.paymentRegistry.get(id);
-    }
-
-    cancelSelectedPayment = () => {
-        this.selectedPayment = undefined;
-    }
-
-    openForm = (id?: string) => {
-        id ? this.selectPayment(id) : this.cancelSelectedPayment();
-        this.editMode = true;
-    }
-
-    closeForm = () => {
-        this.editMode = false;
     }
 
     createPayment = async (payment: Payment) => {
@@ -97,9 +109,7 @@ export default class PaymentStore {
         try {
             await agent.Payments.delete(id);
             runInAction(() => {
-                // this.payments = [...this.payments.filter(p => p.id !== id)]
                 this.paymentRegistry.delete(id);
-                if (this.selectedPayment?.id === id) this.cancelSelectedPayment();
                 this.loading = false;
             });
         } catch (error) {

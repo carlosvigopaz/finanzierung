@@ -1,13 +1,19 @@
 import { Grid } from 'semantic-ui-react';
 import PaymentList from './PaymentList';
-import PaymentDetails from '../details/PaymentDetails';
-import PaymentForm from '../form/PaymentForm';
 import { useStore } from '../../../app/stores/store';
 import { observer } from 'mobx-react-lite';
+import { useEffect } from 'react';
+import LoadingComponent from '../../../app/layout/LoadingComponent';
 
 export default observer(function PaymentDashboard() {
   const {paymentStore} = useStore();
-  const {selectedPayment, editMode} = paymentStore;
+  const {loadPayments, paymentRegistry} = paymentStore;
+
+  useEffect(() => {
+    if (paymentRegistry.size <= 1) loadPayments();
+  }, [loadPayments, paymentRegistry.size]);
+
+  if (paymentStore.loadingInitial) return <LoadingComponent content={'Loading app...'} />
 
   return (
     <Grid>
@@ -15,10 +21,7 @@ export default observer(function PaymentDashboard() {
         <PaymentList />
       </Grid.Column>
       <Grid.Column width='6'>
-        {selectedPayment && !editMode &&
-        <PaymentDetails />}
-        {editMode &&
-        <PaymentForm />}
+        <h2>Payment filters</h2>
       </Grid.Column>
     </Grid>
   );

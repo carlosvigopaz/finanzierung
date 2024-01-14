@@ -11,6 +11,7 @@ export default function NavBar() {
           Finanzierung
         </Menu.Item>
         <Menu.Item as={NavLink} to='/payments' name='Payments' />
+        <Menu.Item as={NavLink} to='/errors' name='Errors' />
         <Menu.Item>
           <Button as={NavLink} to='/createPayment' positive content='Create payment' />
         </Menu.Item>
